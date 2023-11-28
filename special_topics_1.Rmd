@@ -1,0 +1,38 @@
+---
+title: "special_topics_1"
+author: "Caleigh Dwyer"
+date: "2023-11-28"
+output: html_document
+---
+
+
+created r package to help hide data folder from github directory when working with patient data. adds a little arrow to the data directory, making it not a folder in the project, it is just a symbolic link. git doesnt look inside of that data folder. as long as working on your computer, you can access and work with it, but others cannot. R recognizes aliases but git ignores them
+
+you can cache results, which is useful if you're running big analyses cuz it saves the results rather than requiring that it be re run each time the output is made.
+
+sometimes you need address data anyways to run a neighborhood analysis/geo analysis, but this is still identifiable information so you'll need to store it carefully
+
+DStore you probs dont need to commit them to your github because it's just about Mac's system architecture. 
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+litters_df = 
+  read_csv(here::here("data", "FAS_litters.csv"))
+```
+
+## Shiny
+
+Framework for building interactive plots and web apps in r
+
+Allows you to create a graphical user interface (GUI). Users can interact w/ your code w/o knowing r, and you can communicate viz, models, algorithms w/ collaborators
+
+uses html, css, and javascript framework (you don't need to know these to use shiny tho). This was developed in 2012.
+
+adds interacctivity -- your app can take user input and update outputs accordingly
+
+run this in console to see an example: > shiny::runExample("01_hello")
+
+
