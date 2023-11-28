@@ -5,6 +5,7 @@ date: "2023-11-28"
 output: html_document
 ---
 
+homework6: out of 1000 bootstraps how many were NAs because they were negative and then graph those that are nonnegative
 
 created r package to help hide data folder from github directory when working with patient data. adds a little arrow to the data directory, making it not a folder in the project, it is just a symbolic link. git doesnt look inside of that data folder. as long as working on your computer, you can access and work with it, but others cannot. R recognizes aliases but git ignores them
 
@@ -35,4 +36,37 @@ adds interacctivity -- your app can take user input and update outputs according
 
 run this in console to see an example: > shiny::runExample("01_hello")
 
+sharing shiny apps is more complex than just creating a dashboard. you have to deploy in special ways, not just github cuz you need r to run in the background
+
+# inputs
+Widgets are text elements that users can interact w/  (scroll bars, buttons, text, slider, radio buttons)
+
+functions that react to user input:
+renderPrint
+renderText
+renderTable
+renderPlot
+renderPlotly
+
+there are standalone shiny apps, not built within an R markdown document. Can be more flexible than piggybacking on R markdown/flexdash
+
+shiny apps:
+-ui: controls layout and appearance, where you add widgets
+-server
+
+HTML files can't do this. You have to send raw files to a host and then recipient knits the file/runs the app through rstudio
+(shinyapps.io is pretty common)
+
+
+# Working on an example
+use "run document" for the template rather than knit this
+
+radioButtons(
+  inputID = "room_type",
+  label = h3("Select a price range"),
+  choices = room_vec,
+  select = "Entire home/apt"
+)
+
+renderText({input[["price_range"]]})
 
