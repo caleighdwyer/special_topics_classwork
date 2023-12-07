@@ -1,0 +1,20 @@
+---
+title: "special_2"
+author: "Caleigh Dwyer"
+date: "2023-12-07"
+output: github_document
+---
+
+## Lasso
+
+Notes:
+
+Regression is estimated using the data likelihood 
+minb[RSS(b)] RSS is residual sum of squares
+
+Lasso adds a penalty on the sum of all coefficients:
+minb[RSS(b)+Yp(b)] 
+
+Estimation is now a balance between overall fit and coefficient size (you don't want coefficients that are too big)
+
+difficult to get p-values out of lasso. (no inference). don't trust someone's p values that they report out of a lasso regression. Very little/difficult interpretation (coefficients aren't interpeted the same as regular regression)
