@@ -18,3 +18,164 @@ minb[RSS(b)+Yp(b)]
 Estimation is now a balance between overall fit and coefficient size (you don't want coefficients that are too big)
 
 difficult to get p-values out of lasso. (no inference). don't trust someone's p values that they report out of a lasso regression. Very little/difficult interpretation (coefficients aren't interpeted the same as regular regression)
+
+The goal for lasso is to find the coefficients with the best predictor performance. No more, no less.
+
+Tuning parameters for lasso are frequently chosen using cross validation.
+
+lasso is best if you have 100s or 1000s of predictors
+
+## Clustering
+Unsupervised learning approach. broad collection of techniques that try to find data-driven subgroups.
+-sub groups are non overlapping, and every data point is in one subgroup
+-data points in same subgroup are more similar to each other than to points in another subgroup 
+You have to define "similarity"
+you can usually eyeball clustering to see if it looks right
+
+we're gonna use k-means clustering (easiest to understand)
+1) assume there are k groups, each with its own mean ("centroid")
+2) put all data points in a group at random
+3) alternate between two steps:
+- recompute group mean
+-reassign points to the cluster with the closest centroid
+
+## let's code
+
+```{r}
+library(tidyverse)
+library(glmnet)
+```
+
+
+```{r}
+set.seed(11)
+
+bwt_df = 
+  read_csv("data/birthweight.csv") |> 
+  janitor::clean_names() |>
+  mutate(
+    babysex = as.factor(babysex),
+    babysex = fct_recode(babysex, "male" = "1", "female" = "2"),
+    frace = as.factor(frace),
+    frace = fct_recode(
+      frace, "white" = "1", "black" = "2", "asian" = "3", 
+      "puerto rican" = "4", "other" = "8"),
+    malform = as.logical(malform),
+    mrace = as.factor(mrace),
+    mrace = fct_recode(
+      mrace, "white" = "1", "black" = "2", "asian" = "3", 
+      "puerto rican" = "4")) |> 
+  sample_n(200)
+
+```
+
+
+```{r}
+#lm(bwt ~ babysex + ...)
+
+x = model.matrix(bwt ~., bwt_df)[,-1]
+
+y = bwt_df |> pull(bwt)
+
+##we don't use tidyverse with glmnet because it was made in 2002, use with base r instead. so no dataframes.
+```
+
+
+fit lasso
+
+```{r}
+
+lambda = 10^(seq(3, -2, -0.1))
+
+lasso_fit = 
+  glmnet(x,y,lambda = lambda)
+
+lasso_cv = 
+  cv.glmnet(x,y,lambda = lambda)
+
+lambda_opt = lasso_cv$lambda.min
+
+lasso_fit |> 
+  broom::tidy() |> 
+  select(term, lambda, estimate) |> 
+  filter(term!= "(Intercept)") |> 
+  complete(term, lambda, fill = list(estimate = 0))
+```
+
+larger lambda = more important predictor, but as lambda gets bigger, the estimate gets smaller
+
+```{r}
+lasso_fit |> 
+  broom::tidy() |> 
+  select(term, lambda, estimate) |> 
+  complete(term, lambda, fill = list(estimate = 0) ) |> 
+  filter(term != "(Intercept)") |> 
+  ggplot(aes(x = log(lambda, 10), y = estimate, group = term, color = term)) + 
+  geom_path() + 
+  geom_vline(xintercept = log(lambda_opt, 10), color = "blue", size = 1.2) +
+  theme(legend.position = "none")
+
+log(lambda_opt, 10)
+```
+
+
+```{r}
+lasso_fit |> 
+  broom::tidy() |> view()
+
+lasso_fit |> 
+  filter(step == 12)
+```
+
+
+
+show the CV results
+
+```{r}
+lasso_cv |> 
+  broom::tidy() |> 
+  ggplot(aes(x = log(lambda, 10), y = estimate))+
+  geom_point()
+
+```
+
+when the estimate is really large, the prediction accuracy is getting worse. ideal lambda is log lambda,10 in this case because it has the best prediction accuracy (lowest estimate)
+
+##palmer penguins
+
+```{r}
+library(palmerpenguins)
+
+data("penguins")
+
+penguins = 
+  penguins |> 
+  select(species, bill_length_mm, flipper_length_mm) |> 
+  drop_na() 
+
+penguins |> 
+  ggplot(aes(x = bill_length_mm, y = flipper_length_mm, color = species)) + 
+  geom_point()
+```
+
+
+```{r}
+
+kmeans_fit =
+penguins |> 
+  select(-species) |> 
+  scale() |> 
+  ##couldn't get scale to work
+  kmeans(centers = 3)
+
+penguins = 
+penguins |> 
+  broom::augment(kmeans_fit, data = _)
+
+penguins |> 
+  ggplot(aes(x = bill_length_mm, y = flipper_length_mm, color = .cluster)) + 
+  geom_point()
+
+##somethingi mportant to k means is scaling (we didn't do that above)
+```
+
